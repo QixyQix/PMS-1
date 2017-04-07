@@ -17,7 +17,7 @@ and open the template in the editor.
         <div id="menu">
             <img src="img/logo.png" width="90%"/>
             <p>Player record Management System
-                <br>Indev v0.2</p>
+                <br>Indev v0.2.1</p>
             <ul id="menulist">
                 <li><strong>Home</strong></li>
                 <li><a href="players.html"/>Players Information</a></li>
@@ -38,40 +38,9 @@ and open the template in the editor.
             </div>
         </div>
         <!--End Content-->
-
+        <script src="javascript/firebaseSetup.js"></script>
+        <script src="javascript/authentication.js"></script>
         <script>
-            // Initialize Firebase
-            var config = {
-                apiKey: "***REMOVED***",
-                authDomain: "***REMOVED***",
-                databaseURL: "***REMOVED***",
-                projectId: "***REMOVED***",
-                storageBucket: "***REMOVED***.appspot.com",
-                messagingSenderId: "***REMOVED***"
-            };
-            firebase.initializeApp(config);
-
-            //Authentication - Check if user logged in
-            firebase.auth().onAuthStateChanged(function (user) {
-                if (user) {
-                    // User is signed in.
-                    var head = document.getElementById("contenttop");
-                    head.innerHTML = "Welcome back, " + user.email;
-                } else {
-                    // User is signed out.
-                    window.location = "index.html";
-                }
-            });
-            //Authentication - Log out user
-            var logout = document.getElementById("signOut");
-            logout.addEventListener('click', function signout() {
-                firebase.auth().signOut().then(function () {
-                    window.location = "index.html";
-                }, function (error) {
-                    console.log(error);
-                });
-            });
-
             //Load the announcements
             //1. Create Reference
             var query = firebase.database().ref("Announcement").orderByKey();
