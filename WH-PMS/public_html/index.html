@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="img/logo.png" width="90%"/>
+            <p>Player record Management System
+                <br>Indev v0.1</p>
+        </div>
+
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="login">
+                <h3>Login</h3>
+                <br/>
+                <form>
+                    Email: <input type="text" id="txtEmail"/>
+                    Password: <input type="password" id="txtPassword"/>
+                    <br><br><button type="button" id="loginButton"/>Login</button>
+                    <p id="loginErrorMessage"></p>
+                </form>
+            </div>
+        </div>
+        <!--End Content-->
+
+
+        <!--<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>-->
+        <script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "***REMOVED***",
+                authDomain: "***REMOVED***",
+                databaseURL: "***REMOVED***",
+                projectId: "***REMOVED***",
+                storageBucket: "***REMOVED***.appspot.com",
+                messagingSenderId: "***REMOVED***"
+            };
+            firebase.initializeApp(config);
+			
+            //Get the elements
+            var txtEmail = document.getElementById("txtEmail");
+            var txtPass = document.getElementById("txtPassword");
+            var btnSubmit = document.getElementById("loginButton");
+            
+            btnSubmit.addEventListener('click', loginUser);
+            
+            function loginUser(){
+                var email = txtEmail.value;
+                var password = txtPassword.value;
+
+				firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
+				var pError = document.getElementById("loginErrorMessage");
+				pError.innerHTML="Incorrect email or password";
+				var errorMessage = error.message;
+				});
+            }
+			
+			//Handle Account Status
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    // User is signed in.
+                    window.location = "main.html";
+                }
+            });
+        </script>
+    </body>
+</html>

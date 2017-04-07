@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="img/logo.png" width="90%"/>
+            <p>Player record Management System
+                <br>Indev v0.1</p>
+            <ul id="menulist">
+                <li>Home</li>
+                <li><a href="newRecord.html"/>Submit New Record</a></li>
+                <li><a href="playerInfo.html">Player Information</a></li>
+                <li><a id="signOut">Sign Out</a></li>
+            </ul>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div>
+
+            </div>
+        </div>
+        <!--End Content-->
+
+        <script>
+            // Initialize Firebase
+            var config = {
+                apiKey: "***REMOVED***",
+                authDomain: "***REMOVED***",
+                databaseURL: "***REMOVED***",
+                projectId: "***REMOVED***",
+                storageBucket: "***REMOVED***.appspot.com",
+                messagingSenderId: "***REMOVED***"
+            };
+            firebase.initializeApp(config);
+
+            firebase.auth().onAuthStateChanged(function (user) {
+                if (user) {
+                    // User is signed in.
+                    var head = document.getElementById("contenttop");
+                    head.innerHTML = "Welcome back, " + user.email;
+                } else {
+                    // User is signed out.
+                    window.location = "index.html";
+                }
+            });
+
+            var logout = document.getElementById("signOut");
+            logout.addEventListener('click', function signout() {
+                firebase.auth().signOut().then(function () {
+                    window.location = "index.html";
+                }, function (error) {
+                    console.log(error);
+                });
+            });
+        </script>
+    </body>
+</html>
