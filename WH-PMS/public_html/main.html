@@ -17,11 +17,10 @@ and open the template in the editor.
         <div id="menu">
             <img src="img/logo.png" width="90%"/>
             <p>Player record Management System
-                <br>Indev v0.1</p>
+                <br>Indev v0.2</p>
             <ul id="menulist">
-                <li>Home</li>
-                <li><a href="newRecord.html"/>Submit New Record</a></li>
-                <li><a href="playerInfo.html">Player Information</a></li>
+                <li><strong>Home</strong></li>
+                <li><a href="players.html"/>Players Information</a></li>
                 <li><a id="signOut">Sign Out</a></li>
             </ul>
         </div>
@@ -31,8 +30,11 @@ and open the template in the editor.
         <div id="content">
             <div id="contenttop">
             </div>
-            <div>
-
+            <div id="contentMain">
+                <h1>Announcements</h1>
+                <hr/>
+                <div id="announcements"></div>
+                <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
             </div>
         </div>
         <!--End Content-->
@@ -49,6 +51,7 @@ and open the template in the editor.
             };
             firebase.initializeApp(config);
 
+            //Authentication - Check if user logged in
             firebase.auth().onAuthStateChanged(function (user) {
                 if (user) {
                     // User is signed in.
@@ -59,7 +62,7 @@ and open the template in the editor.
                     window.location = "index.html";
                 }
             });
-
+            //Authentication - Log out user
             var logout = document.getElementById("signOut");
             logout.addEventListener('click', function signout() {
                 firebase.auth().signOut().then(function () {
@@ -68,6 +71,34 @@ and open the template in the editor.
                     console.log(error);
                 });
             });
+
+            //Load the announcements
+            //1. Create Reference
+            var query = firebase.database().ref("Announcement").orderByKey();
+            query.once("value")
+                    .then(function (snapshot) {
+                        snapshot.forEach(function (childSnapshot) {
+                            var childData = childSnapshot.val();
+                            addAnnouncement(childData.By, childData.Title, childData.Text);
+                        });
+                    });
+
+            function addAnnouncement(poster, title, text) {
+                var announcementBox = document.getElementById("announcements");
+
+                var announcementDiv = document.createElement("div");
+                var announcementHeaderDiv = document.createElement("div");
+                announcementHeaderDiv.className = "heading";
+                var announcementTextP = document.createElement("p");
+
+                announcementHeaderDiv.innerHTML = title;
+                announcementTextP.innerHTML = "Posted by: " + poster + "</br>" + text;
+
+                announcementDiv.append(announcementHeaderDiv);
+                announcementDiv.append(announcementTextP);
+                //Appaend the new announcement to the main content area.
+                announcementBox.append(announcementDiv);
+            }
         </script>
     </body>
 </html>

@@ -9,7 +9,7 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <link href="style.css" rel="stylesheet" type="text/css"/>
         <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
     </head>
     <body>
@@ -17,7 +17,7 @@ and open the template in the editor.
         <div id="menu">
             <img src="img/logo.png" width="90%"/>
             <p>Player record Management System
-                <br>Indev v0.1</p>
+                <br>Indev v0.2</p>
         </div>
 
         <!--End Menu-->
@@ -30,10 +30,11 @@ and open the template in the editor.
                 <form>
                     Email: <input type="text" id="txtEmail"/>
                     Password: <input type="password" id="txtPassword"/>
-                    <br><br><button type="button" id="loginButton"/>Login</button>
-                    <p id="loginErrorMessage"></p>
+                    <br/><br/><button type="button" id="loginButton">Login</button>
+                    <p id="loginErrorMessage" class="red"></p>
                 </form>
             </div>
+            <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
         </div>
         <!--End Content-->
 
@@ -50,26 +51,25 @@ and open the template in the editor.
                 messagingSenderId: "***REMOVED***"
             };
             firebase.initializeApp(config);
-			
+
             //Get the elements
             var txtEmail = document.getElementById("txtEmail");
             var txtPass = document.getElementById("txtPassword");
             var btnSubmit = document.getElementById("loginButton");
-            
+
             btnSubmit.addEventListener('click', loginUser);
-            
-            function loginUser(){
+
+            function loginUser() {
                 var email = txtEmail.value;
                 var password = txtPassword.value;
 
-				firebase.auth().signInWithEmailAndPassword(email, password).catch(function(error) {
-				var pError = document.getElementById("loginErrorMessage");
-				pError.innerHTML="Incorrect email or password";
-				var errorMessage = error.message;
-				});
+                firebase.auth().signInWithEmailAndPassword(email, password).catch(function (error) {
+                    var pError = document.getElementById("loginErrorMessage");
+                    pError.innerHTML = "Incorrect email or password";
+                });
             }
-			
-			//Handle Account Status
+
+            //Handle Account Status
             firebase.auth().onAuthStateChanged(function (user) {
                 if (user) {
                     // User is signed in.

@@ -78,7 +78,7 @@ h3{
 #login{
     text-align: center;
     vertical-align: middle;
-    
+    margin: auto;
 }
 
 .imprint{
@@ -94,6 +94,14 @@ h3{
     background: #A44B4B;
     width:100%;
     border-radius: 10px;
+}
+
+.centerText{
+    text-align: center;
+}
+
+.red{
+    color:red;
 }
 
 fieldset{
