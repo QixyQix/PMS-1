@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="../img/logo.png" width="90%"/>
+            <p>Player record Management System
+                <br>Indev v0.2.1</p>
+            <ul id="menulist">
+                <li><strong>Home</strong></li>
+                <li><a href="players.html"/>Players Information</a></li>
+                <li><a id="signOut">Sign Out</a></li>
+            </ul>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div id="contentMain">
+                <h1>New Player Record</h1>
+                <hr/>
+                <p class="red" id="errorMsg"></p>
+                <form>
+                    UUID: <input type="text" id="txtUUID"/>
+                    <button type="button" id="saveButton">Save</button>
+                </form>
+                <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
+            </div>
+        </div>
+        <!--End Content-->
+        <script src="../javascript/firebaseSetup.js"></script>
+        <script src="../javascript/authentication.js"></script>
+        <script>
+            var saveButton = document.getElementById("saveButton");
+            var errorPara = document.getElementById("errorMsg");
+            var uuidInput = document.getElementById("txtUUID");
+
+            saveButton.addEventListener('click', addUUID);
+
+            var patt = /e/;
+            console.log(patt.test("The best things in life are free!"));
+
+
+            function addUUID() {
+                errorPara.innerHTML = "";
+                var input = uuidInput.value;
+                var UUIDPattern = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/;
+                //var UUIDPattern = /[a-f0-9]{8}-[a-f0-9]{4}-4[0-9]{3}-[89ab][a-f0-9]{3}-[0-9a-f]{12}/;
+                if (UUIDPattern.test(input)) {
+                    alert("correct!");
+                    addToDatabase(input);
+                } else {
+                    errorPara.innerHTML = "Please use the following format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
+                }
+            }
+
+            function addToDatabase(uuid) {
+                var playersRef = firebase.database().ref("Players");
+
+                playersRef.once('value', function (snapshot) {
+                    if (snapshot.hasChild(uuid)) {
+                        errorPara.innerHTML = "Record already exists in database!";
+                    } else {
+                        playersRef.child(uuid).set({
+                            Bans: "",
+                            Warnings: ""
+                        });
+                    }
+                });
+                
+                
+                
+            }
+
+        </script>
+</html>
