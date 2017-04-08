@@ -17,15 +17,21 @@ body{
 }
 
 h2{
-   font-family: Imprint MT Shadow, Georgia, serif;
-   font-size:3em;
-   font-weight: normal;
+    font-family: Helvetica, sans-serif;
+    font-size:3em;
+    font-weight: normal;
 }
 
 h3{
-   font-family: sans-serif;
-   font-size:2em;
-   font-weight: bold;
+    font-family: sans-serif;
+    font-size:2em;
+    font-weight: bold;
+}
+
+h4{
+    font-family: sans-serif;
+    font-size:1em;
+    font-weight: bold;
 }
 
 #menu{
@@ -52,7 +58,7 @@ h3{
 #menulist a:hover{
     color: #FFFFFF;
     font-weight: bold;
-    
+
 }
 #menulist a:active{
     color: #FFFFFF;
@@ -82,8 +88,8 @@ h3{
 }
 
 .imprint{
-   font-family: Imprint MT Shadow, Georgia, serif;
-   font-size: 2em;   
+    font-family: Imprint MT Shadow, Georgia, serif;
+    font-size: 2em;   
 }
 
 .heading{
@@ -104,6 +110,52 @@ h3{
     color:red;
 }
 
+.green{
+    color:green;
+}
+
+.floatLeft{
+    float:left;
+}
+
+.floatRight{
+    float:right;
+}
+
+.clearLeft{
+    clear:left;
+}
+
+.clearRight{
+    clear:right;
+}
+
+.width50{
+    width:48%;
+}
+
+.width30{
+    width:30%;
+}
+
+.formBlock{
+    margin:15px;
+}
+
+.formBlock input{
+    width:50%;
+}
+
+.formBlock label{
+    display: inline-block;
+    width: 20%;
+    text-align: right;
+}
+
+.formBlock textarea{
+    width:50%;
+}
+
 fieldset{
     border-radius: 5px;
     padding: 15px;
@@ -118,7 +170,7 @@ fieldset{
         position:relative;
         margin:0px;
     }
-    
+
     #content{
         width:100%;
         clear: left;

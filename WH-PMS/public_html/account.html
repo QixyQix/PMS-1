@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="img/logo.png" width="90%"/>
+            <p>Player record Management System
+                <br>Indev v0.2.1</p>
+            <ul id="menulist">
+                <li><strong>Home</strong></li>
+                <li><a href="players.html"/>Players Information</a></li>
+                <li><a id="signOut">Sign Out</a></li>
+            </ul>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div id="contentMain">
+                <h1>Account Settings</h1>
+                <hr/>
+
+                <div class='heading'>1. Your minecraft username/UUID</div>
+                <br/><h4>1.1 Get your UUID by username</h4>
+                <div>
+                    <div class='width50 floatLeft'>
+                        <form>
+                            <label for='txtUsername'>Username:</label>
+                            <input type='text' id='txtUsername' placeholder='e.g. Minerboy100'/>
+                            <button type='button' id='btnQueryUUID'>Get UUID</button>
+                            <br/><p id='resolveUUIDError' class='red'></p>
+                        </form>
+                    </div>
+
+                    <div class='width50 floatLeft'>
+                        <p id='resolvedName'></p>
+                        <img id='resolvedAvatar' src='' width='15%'/><br/>
+                        <p id='resolvedUUID'></p><br/>
+                    </div>
+                </div>
+                <h4 class='clearLeft'>1.2 Save your UUID/Enter your UUID directly</h4>
+                <p id='saveUUIDMsg'></p><br/>
+                <form>
+                    <div class='formBlock'>
+                        <label for='txtUUID'>Your UUID: </label>
+                        <input type='text' id="txtUUID"  placeholder="e.g. 0a31041a-9f36-43f9-9857-8fc90faf3501"/>
+                        <button type='button' id='btnSaveUUID'>Save UUID</button>
+                    </div>
+
+                </form>
+
+
+                <div class='heading clearLeft'>2. Password & Email</div>
+                <p id="updateAccountResponse"></p>
+                <form>
+                    <div class='formBlock'>
+                        <label for='txtEmail'>Email:</label>
+                        <input type='text' id='txtEmail'/>
+                    </div>
+                    <div class='formBlock'>
+                        <label for='txtIssuedOn'>New Password:</label>
+                        <input type='password' id='txtNewPass'/>
+                    </div>
+                    <div class='formBlock'>
+                        <label for='txtIssuedOn'>Repeat Password:</label>
+                        <input type='password' id='txtNewPassRep'/>
+                    </div>
+                    <div class='formBlock'>
+                    </div>
+                    <div class='formBlock'>
+                        <p class='centerText'>To save these changes, key in your old password.</p>
+                        <label for='txtIssuedOn'>Old Password:</label>
+                        <input type='password' id='txtOldPass'/>
+                        <button type="button" id="btnSaveAcc">Save</button>
+                    </div>
+                </form>
+                <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
+            </div>
+        </div>
+        <!--End Content-->
+        <script src="javascript/firebaseSetup.js"></script>
+        <script src="javascript/authentication.js"></script>
+        <script>
+            //Set listeners
+            document.getElementById('btnQueryUUID').addEventListener('click', getUUID);
+            document.getElementById('btnSaveUUID').addEventListener('click', saveUUID);
+            document.getElementById('btnSaveAcc').addEventListener('click', updateProfile);
+            var txtUUID = document.getElementById('txtUUID');
+            loadProfile();
+
+            function loadProfile() {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    if (user) {
+                        //Email
+                        document.getElementById('txtEmail').value = user.email;
+
+                        //UUID
+                        var UUIDref = firebase.database().ref('UserUUIDS/' + user.uid);
+                        UUIDref.once('value').then(function (snapshot) {
+                            document.getElementById('txtUUID').value = snapshot.val();
+                        });
+                    }
+                });
+            }
+
+            function saveUUID() {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    if (user) {
+                        var userUUID = document.getElementById('txtUUID').value;
+                        var responsePara = document.getElementById('saveUUIDMsg');
+
+                        var UUIDPattern = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/;
+                        //var UUIDPattern = /[a-f0-9]{8}-[a-f0-9]{4}-4[0-9]{3}-[89ab][a-f0-9]{3}-[0-9a-f]{12}/;
+                        if (UUIDPattern.test(userUUID)) {
+                            var userRef = firebase.database().ref("UserUUIDS");
+
+                            userRef.once('value', function (snapshot) {
+                                userRef.child(user.uid).set(userUUID);
+                                responsePara.innerHTML = "UUID Updated Successfully!";
+                                responsePara.class = "green";
+                            });
+                        } else {
+                            responsePara.innerHTML = "Please use the following format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
+                            responsePara.class = "red";
+                        }
+                    }
+                });
+            }
+
+            function updateProfile() {
+                var responsePara = document.getElementById('updateAccountResponse');
+                var oldPass = document.getElementById('txtOldPass').value;
+                var newPass = document.getElementById('txtNewPass').value;
+                var newPassRepeat = document.getElementById('txtNewPassRep').value;
+                var email = document.getElementById('txtEmail').value;
+
+                console.log(newPass);
+
+                if (email !== null || email.trim() !== "") {
+                    firebase.auth().onAuthStateChanged(function (user) {
+                        if (user) {
+                            var credential = firebase.auth.EmailAuthProvider.credential(
+                                    user.email,
+                                    oldPass
+                                    );
+                            user.reauthenticate(credential).then(function () {
+                                user.updateEmail(document.getElementById('txtEmail').value.trim()).then(function(){
+                                    
+                                },function(error){
+                                });
+                                if (newPass !== "" || newPass !== null) {
+                                    if (newPass === newPassRepeat) {
+                                        user.updatePassword(newPass);
+                                    }
+                                }
+                            }, function (error) {
+                                responsePara.innerHTML = "Incorrect Password";
+                            });
+                        }
+                    });
+                } else {
+                    responsePara.innerHTML = "Email field cannot be empty!";
+                }
+            }
+
+            function getUUID() {
+                var username = document.getElementById('txtUsername').value;
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "https://api.mojang.com/users/profiles/minecraft/" + username, false);
+                xhttp.send();
+
+                try {
+                    var response = JSON.parse(xhttp.responseText);
+
+                    if (response.id !== null) {
+                        var uuid = response.id;
+
+                        var convertedUUID = convertUUID(uuid);
+                        txtUUID.value = convertedUUID;
+
+                        var resolvedName = document.getElementById('resolvedName');
+                        var resolvedAvatar = document.getElementById('resolvedAvatar');
+                        var resolvedUUID = document.getElementById('resolvedUUID');
+                        document.getElementById('resolveUUIDError').innerHTML = "";
+
+                        resolvedName.innerHTML = username;
+                        resolvedAvatar.src = "https://crafatar.com/renders/body/" + convertedUUID;
+                        resolvedUUID.innerHTML = convertedUUID;
+                    }
+                } catch (err) {
+                    document.getElementById('resolveUUIDError').innerHTML = "Player does not exist!";
+                }
+            }
+
+            function convertUUID(uuid) {
+                var convertedUUID = "";
+                convertedUUID += uuid.substring(0, 8) + "-";
+                convertedUUID += uuid.substring(8, 12) + "-";
+                convertedUUID += uuid.substring(12, 16) + "-";
+                convertedUUID += uuid.substring(16, 20) + "-";
+                convertedUUID += uuid.substring(20);
+
+                return convertedUUID;
+            }
+
+        </script>
+</html>

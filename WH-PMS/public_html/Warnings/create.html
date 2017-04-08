@@ -31,8 +31,9 @@ and open the template in the editor.
             <div id="contenttop">
             </div>
             <div id="contentMain">
-                <h1>New Player Record</h1>
+                <h1>New Warning Record</h1>
                 <hr/>
+
                 <div class='heading'>1. Get user's UUID</div>
                 <br/>
                 <div>
@@ -56,8 +57,25 @@ and open the template in the editor.
                 <div class='heading clearLeft'>2. Fill out the remaining details</div>
                 <p class="red" id="errorMsg"></p>
                 <form>
-                    UUID: <input type="text" id="txtUUID"/>
-                    <button type="button" id="saveButton">Save</button>
+                    <div class='formBlock'>
+                        <label for='txtUUID'>Offender's UUID: </label>
+                        <input type='text' id="txtUUID"  placeholder="e.g. 0a31041a-9f36-43f9-9857-8fc90faf3501"/>
+                    </div>
+                    <div class='formBlock'>
+                        <label for='txtIssuedBy'>Issued By:</label>
+                        <input type='text' id='txtIssuedBy'  placeholder="e.g. y0urs_Tru1y"/>
+                    </div>
+                    <div class='formBlock'>
+                        <label for='txtIssuedOn'>Issued On:</label>
+                        <input type='date' id='txtIssuedOn'/>
+                    </div>
+                    <div class='formBlock'>
+                        <label for='txtReason'>Reason:</label>
+                        <textarea id="txtReason" rows="4" placeholder="e.g. Griefing a player's house in sandbox"></textarea>
+                    </div>
+                    <div class='formBlock'>
+                        <button type="button" id="saveButton">Save</button>
+                    </div>
                 </form>
                 <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
             </div>
@@ -66,13 +84,10 @@ and open the template in the editor.
         <script src="../javascript/firebaseSetup.js"></script>
         <script src="../javascript/authentication.js"></script>
         <script>
-            var saveButton = document.getElementById("saveButton");
-            var errorPara = document.getElementById("errorMsg");
-            var uuidInput = document.getElementById("txtUUID");
             var btnGetUUID = document.getElementById('btnQueryUUID');
             btnGetUUID.addEventListener('click', getUUID);
 
-            saveButton.addEventListener('click', addUUID);
+            var txtUUID = document.getElementById('txtUUID');
 
             function getUUID() {
                 var username = document.getElementById('txtUsername').value;
@@ -80,28 +95,28 @@ and open the template in the editor.
                 var xhttp = new XMLHttpRequest();
                 xhttp.open("GET", "https://api.mojang.com/users/profiles/minecraft/" + username, false);
                 xhttp.send();
+                
+                try{
+                var response = JSON.parse(xhttp.responseText);
 
-                try {
-                    var response = JSON.parse(xhttp.responseText);
+                if (response.id !== null) {
+                    var uuid = response.id;
 
-                    if (response.id !== null) {
-                        var uuid = response.id;
+                    var convertedUUID = convertUUID(uuid);
+                    txtUUID.value = convertedUUID;
 
-                        var convertedUUID = convertUUID(uuid);
-                        txtUUID.value = convertedUUID;
-
-                        var resolvedName = document.getElementById('resolvedName');
-                        var resolvedAvatar = document.getElementById('resolvedAvatar');
-                        var resolvedUUID = document.getElementById('resolvedUUID');
-                        document.getElementById('resolveUUIDError').innerHTML = "";
-
-                        resolvedName.innerHTML = username;
-                        resolvedAvatar.src = "https://crafatar.com/renders/body/" + convertedUUID;
-                        resolvedUUID.innerHTML = convertedUUID;
-                    }
-                } catch (err) {
-                    document.getElementById('resolveUUIDError').innerHTML = "Player does not exist!";
+                    var resolvedName = document.getElementById('resolvedName');
+                    var resolvedAvatar = document.getElementById('resolvedAvatar');
+                    var resolvedUUID = document.getElementById('resolvedUUID');
+                    document.getElementById('resolveUUIDError').innerHTML = "";
+                    
+                    resolvedName.innerHTML = username;
+                    resolvedAvatar.src = "https://crafatar.com/renders/body/" + convertedUUID;
+                    resolvedUUID.innerHTML = convertedUUID;
                 }
+            }catch(err){
+                document.getElementById('resolveUUIDError').innerHTML = "Player does not exist!";
+            }
             }
 
 
@@ -116,38 +131,16 @@ and open the template in the editor.
                 return convertedUUID;
             }
 
-            function addUUID() {
-                errorPara.innerHTML = "";
-                var input = uuidInput.value;
-                var UUIDPattern = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[34][0-9a-fA-F]{3}-[89ab][0-9a-fA-F]{3}-[0-9a-fA-F]{12}/;
-                //var UUIDPattern = /[a-f0-9]{8}-[a-f0-9]{4}-4[0-9]{3}-[89ab][a-f0-9]{3}-[0-9a-f]{12}/;
-                if (UUIDPattern.test(input)) {
-                    addToDatabase(input);
-                } else {
-                    errorPara.class = "red";
-                    errorPara.innerHTML = "Please use the following format: XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX";
-                }
-            }
+            function addWarning() {
+                var testRef = firebase.database().ref("Players/");
 
-            function addToDatabase(uuid) {
-                var playersRef = firebase.database().ref("Players");
-
-                playersRef.once('value', function (snapshot) {
-                    if (snapshot.hasChild(uuid)) {
-                        errorPara.class = "red";
-                        errorPara.innerHTML = "Record already exists in database!";
-                    } else {
-                        playersRef.child(uuid).set({
-                            Bans: "",
-                            Warnings: ""
-                        });
-                        errorPara.class = "green";
-                        errorPara.innerHTML = "Record added successfully!";
-                    }
+                var newBanRef = testRef.child("Bans").push();
+                newBanRef.set({
+                    Date: "08/04/2017",
+                    Reason: "Spamming fuck in chat",
+                    Duration: "",
+                    IssuedBy: "y0urs_Tru1y"
                 });
-
-
-
             }
 
         </script>
