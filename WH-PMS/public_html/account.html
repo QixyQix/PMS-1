@@ -16,13 +16,16 @@ and open the template in the editor.
         <!--Start Menu-->
         <div id="menu">
             <img src="img/logo.png" width="90%"/>
-            <p>Player record Management System
-                <br>Indev v0.2.1</p>
-            <ul id="menulist">
-                <li><strong>Home</strong></li>
-                <li><a href="players.html"/>Players Information</a></li>
-                <li><a id="signOut">Sign Out</a></li>
-            </ul>
+            <p>Player record Management System</p>
+            <div id="menulist">
+                <p><a href="main.html">Back Home</a></p>
+                <hr/>
+                <p>
+                    <span class="strong">Account</span><br/>
+                    <span class="strong">Account Settings</span><br/>
+                    <a id="signOut">Logout</a>
+                </p>
+            </div>
         </div>
         <!--End Menu-->
 
@@ -158,9 +161,9 @@ and open the template in the editor.
                                     oldPass
                                     );
                             user.reauthenticate(credential).then(function () {
-                                user.updateEmail(document.getElementById('txtEmail').value.trim()).then(function(){
-                                    
-                                },function(error){
+                                user.updateEmail(document.getElementById('txtEmail').value.trim()).then(function () {
+
+                                }, function (error) {
                                 });
                                 if (newPass !== "" || newPass !== null) {
                                     if (newPass === newPassRepeat) {

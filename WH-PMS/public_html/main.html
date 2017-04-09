@@ -17,12 +17,34 @@ and open the template in the editor.
         <div id="menu">
             <img src="img/logo.png" width="90%"/>
             <p>Player record Management System
-                <br>Indev v0.3</p>
-            <ul id="menulist">
-                <li><strong>Home</strong></li>
-                <li><a href="players.html"/>Players Information</a></li>
-                <li><a id="signOut">Sign Out</a></li>
-            </ul>
+                <br>Indev v0.7</p>
+
+            <div id="menulist">
+                <p class="strong">Home</p>
+                <hr/>
+                <p>
+                    <span class="strong">Players</span><br/>
+                    <a href="players/list.html"/>View All Players</a><br/>
+                    <a href="players/view.html"/>View A Player</a><br/>
+                    <a href="players/create.html"/>New Player Record</a>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Warnings</span><br/>
+                    <a href="warnings/create.html"/>New Warning Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Bans</span><br/>
+                    <a href="bans/create.html"/>New Ban Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Account</span><br/>
+                    <a href="account.html"/>Account Settings</a><br/>
+                    <a id="signOut">Logout</a>
+                </p>
+            </div>
         </div>
         <!--End Menu-->
 
@@ -41,6 +63,7 @@ and open the template in the editor.
         <script src="javascript/firebaseSetup.js"></script>
         <script src="javascript/authentication.js"></script>
         <script>
+            checkUUID();
             //Load the announcements
             //1. Create Reference
             var query = firebase.database().ref("Announcement").orderByKey();
@@ -67,6 +90,20 @@ and open the template in the editor.
                 announcementDiv.append(announcementTextP);
                 //Appaend the new announcement to the main content area.
                 announcementBox.append(announcementDiv);
+            }
+
+            function checkUUID() {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    if (user) {
+                        var UUIDref = firebase.database().ref('UserUUIDS');
+                        UUIDref.once('value').then(function (snapshot) {
+                            if (!(snapshot.hasChild(user.uid))) {
+                                alert("Please set your UUID!");
+                                window.location = "account.html";
+                            }
+                        });
+                    }
+                });
             }
         </script>
     </body>

@@ -62,8 +62,8 @@ and open the template in the editor.
                         <input type='text' id="txtUUID"  placeholder="e.g. 0a31041a-9f36-43f9-9857-8fc90faf3501"/>
                     </div>
                     <div class='formBlock'>
-                        <label for='txtIssuedBy'>Issued By:</label>
-                        <input type='text' id='txtIssuedBy'  placeholder="e.g. y0urs_Tru1y"/>
+                        <label for='txtIssuerUUID'>Issuer UUID: </label>
+                        <input type='text' id='txtIssuerUUID'  placeholder="e.g. 0a31041a-9f36-43f9-9857-8fc90faf3501"/>
                     </div>
                     <div class='formBlock'>
                         <label for='txtIssuedOn'>Issued On:</label>
@@ -86,8 +86,23 @@ and open the template in the editor.
         <script>
             var btnGetUUID = document.getElementById('btnQueryUUID');
             btnGetUUID.addEventListener('click', getUUID);
-
+            var btnSaveWarning = document.getElementById('saveButton');
+            btnSaveWarning.addEventListener('click', addWarning);
             var txtUUID = document.getElementById('txtUUID');
+
+            loadForm();
+
+            function loadForm() {
+                firebase.auth().onAuthStateChanged(function (user) {
+                    if (user) {
+                        //UUID
+                        var UUIDref = firebase.database().ref('UserUUIDS/' + user.uid);
+                        UUIDref.once('value').then(function (snapshot) {
+                            document.getElementById('txtIssuerUUID').value = snapshot.val();
+                        });
+                    }
+                });
+            }
 
             function getUUID() {
                 var username = document.getElementById('txtUsername').value;
@@ -95,28 +110,28 @@ and open the template in the editor.
                 var xhttp = new XMLHttpRequest();
                 xhttp.open("GET", "https://api.mojang.com/users/profiles/minecraft/" + username, false);
                 xhttp.send();
-                
-                try{
-                var response = JSON.parse(xhttp.responseText);
 
-                if (response.id !== null) {
-                    var uuid = response.id;
+                try {
+                    var response = JSON.parse(xhttp.responseText);
 
-                    var convertedUUID = convertUUID(uuid);
-                    txtUUID.value = convertedUUID;
+                    if (response.id !== null) {
+                        var uuid = response.id;
 
-                    var resolvedName = document.getElementById('resolvedName');
-                    var resolvedAvatar = document.getElementById('resolvedAvatar');
-                    var resolvedUUID = document.getElementById('resolvedUUID');
-                    document.getElementById('resolveUUIDError').innerHTML = "";
-                    
-                    resolvedName.innerHTML = username;
-                    resolvedAvatar.src = "https://crafatar.com/renders/body/" + convertedUUID;
-                    resolvedUUID.innerHTML = convertedUUID;
+                        var convertedUUID = convertUUID(uuid);
+                        txtUUID.value = convertedUUID;
+
+                        var resolvedName = document.getElementById('resolvedName');
+                        var resolvedAvatar = document.getElementById('resolvedAvatar');
+                        var resolvedUUID = document.getElementById('resolvedUUID');
+                        document.getElementById('resolveUUIDError').innerHTML = "";
+
+                        resolvedName.innerHTML = username;
+                        resolvedAvatar.src = "https://crafatar.com/renders/body/" + convertedUUID;
+                        resolvedUUID.innerHTML = convertedUUID;
+                    }
+                } catch (err) {
+                    document.getElementById('resolveUUIDError').innerHTML = "Player does not exist!";
                 }
-            }catch(err){
-                document.getElementById('resolveUUIDError').innerHTML = "Player does not exist!";
-            }
             }
 
 
@@ -132,16 +147,37 @@ and open the template in the editor.
             }
 
             function addWarning() {
-                var testRef = firebase.database().ref("Players/");
+                var errorMsg = document.getElementById('errorMsg');
+                errorMsg.innerHTML = "";
+                
+                var offenderUUID = document.getElementById('txtUUID').value;
+                var issuerUUID = document.getElementById('txtIssuerUUID').value;
+                var issuedOn = Date.parse(document.getElementById('txtIssuedOn').value);
+                var reason = document.getElementById('txtReason').value;
 
-                var newBanRef = testRef.child("Bans").push();
-                newBanRef.set({
-                    Date: "08/04/2017",
-                    Reason: "Spamming fuck in chat",
-                    Duration: "",
-                    IssuedBy: "y0urs_Tru1y"
-                });
+                if (validateInput(reason) && validateUUID(offenderUUID) && validateUUID(issuerUUID) && !isNaN(issuedOn.valueOf())) {
+                    var playersRef = firebase.database().ref("Players");
+                    
+                    playersRef.once('value').then(function(snapshot){
+                       if(snapshot.hasChild(offenderUUID)){
+                           var playerRef = firebase.database().ref("Players/"+offenderUUID);
+                           var newWarningRef = playerRef.child("Warnings").push();
+                           newWarningRef.set({
+                               IssuedBy: issuerUUID,
+                               IssuedOn: new Date(issuedOn).getTime(),
+                               Reason: reason
+                           });
+                           errorMsg.innerHTML = "Recorded added successfully!"
+                       }else{
+                           errorMsg.innerHTML="Player does not exist in database. Create player record first.";
+                       }
+                    });
+                } else {
+                    errorMsg.innerHTML="Ensure UUIDs are in the correct format (XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)<br/>Ensure there are no script tags in the reason box.";
+                }
+
             }
 
         </script>
+        <script src="../javascript/security.js"></script>
 </html>

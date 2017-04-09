@@ -11,6 +11,7 @@
                     // User is signed in.
                     var head = document.getElementById("contenttop");
                     head.innerHTML = "Welcome back, " + user.email;
+                    
                 } else {
                     // User is signed out.
                     window.location = "index.html";
