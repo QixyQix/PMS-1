@@ -9,8 +9,243 @@ and open the template in the editor.
         <title>TODO supply a title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+        <script src="https://momentjs.com/downloads/moment.js"></script>
+
     </head>
     <body>
-        <div>TODO write content</div>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="../img/logo.png" width="90%"/>
+            <p>Player record Management System</p>
+
+            <div id="menulist">
+                <p class="strong">Home</p>
+                <hr/>
+                <p>
+                    <span class="strong">Players</span><br/>
+                    <span class="strong">View All Players</span><br/>
+                    <a href="view.html">View A Player</a><br/>
+                    <a href="create.html">New Player Record</a>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Warnings</span><br/>
+                    <a href="../warnings/create.html">New Warning Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Bans</span><br/>
+                    <a href="../bans/create.html">New Ban Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Account</span><br/>
+                    <a href="../account.html">Account Settings</a><br/>
+                    <a id="signOut">Logout</a>
+                </p>
+            </div>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div id="contentMain">
+                <h1>View Player's Record</h1>
+                <hr/>
+                <!--Player's Profile-->
+                <div>
+                    <!--Player body photo-->
+                    <div class='width30 floatLeft'><img id='playerBody' src='https://crafatar.com/renders/body/8667ba71-b85a-4004-af54-457a9734eed7' height='300'/></div>
+                    <div class='floatLeft'>
+                        <h3 id='playerName'>Name</h3>
+                        <br/>Active Warnings: <span id='activeWarnings'>0</span> Banned: <span id='banned'>false</span>
+                        <br/>Also Known As:
+                        <ul id='nameHistory'></ul>
+                    </div>
+                </div>
+                <!--Warnings-->                
+                <div class='clearLeft width100'>
+                    <h4>This player's warning records:</h4>
+                    <hr/>
+                    <table id='tblWarnings' class='width100'>
+                        <th>Issued On</th>
+                        <th>Issued By</th>
+                        <th>Reason</th>
+                        <th>&nbsp</th>
+                    </table>
+                </div>
+                <!--Bans-->                
+                <div class='clearLeft width100'>
+                    <h4>This player's ban records:</h4>
+                    <hr/>
+                    <table id='tblBans' class='width100'>
+                        <th>Issued On</th>
+                        <th>Expires On</th>
+                        <th>Issued By</th>
+                        <th>Reason</th>
+                        <th>&nbsp</th>
+                    </table>
+                </div>
+                <p class="centerText clearLeft">Copyright &COPY; 2017, WolvHaven Dev</p>
+            </div>
+        </div>
+        <!--End Content-->
+        <script src="../javascript/firebaseSetup.js"></script>
+        <script src="../javascript/authentication.js"></script>
+        <script>
+            var activeWarnings = 0;
+            var banned = false;
+            var warningTable = document.getElementById('tblWarnings');
+            var banTable = document.getElementById('tblBans');
+            var uuid = "";
+            loadPlayerProfile();
+
+            function loadPlayerProfile() {
+                uuid = getParameterByName("uuid");
+                //Player body
+                document.getElementById('playerBody').src = "https://crafatar.com/renders/body/" + uuid;
+                //Player Names
+                var playerNames = resolveUUID(uuid);
+                console.dir(playerNames);
+                document.getElementById('playerName').innerHTML = playerNames[(playerNames.length - 1)].name;
+                //Name History
+                for (i = 0; i < (playerNames.length - 1); i++) {
+                    var newLi = document.createElement('li');
+                    newLi.innerHTML = playerNames[i].name;
+                    document.getElementById('nameHistory').append(newLi);
+                }
+                //Warnings
+                var ref = firebase.database().ref('Players/' + uuid + '/Warnings');
+                ref.orderByChild("IssuedOn").on("child_added", function (snapshot) {
+                    addWarning(snapshot.val(), snapshot.key);
+                });
+                //Bans
+                var Banref = firebase.database().ref('Players/' + uuid + '/Bans');
+                Banref.orderByChild("IssuedOn").on("child_added", function (snapshot) {
+                    addBan(snapshot.val(), snapshot.key);
+                });
+            }
+
+            function resolveUUID(uuid) {
+                var uuidForAPI = uuid.substring(0, 8) + uuid.substring(9, 13) + uuid.substring(14, 18) + uuid.substring(19, 23) + uuid.substring(24);
+                try {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open("GET", "https://api.mojang.com/user/profiles/" + uuidForAPI + "/names", false);
+                    xhttp.send();
+                    var response = JSON.parse(xhttp.responseText);
+                    return response;
+                } catch (err) {
+                    console.log("Error: UUID " + uuid + " does not exist!");
+                    console.log("Error: Unable to connect to mojang API");
+                }
+            }
+
+            function addWarning(warningData, key) {
+                var newRow = document.createElement('tr');
+                var newTd = document.createElement('td');
+                //Check if still active warning
+                if (moment().isBefore(moment(warningData.IssuedOn).add(2, 'M'))) {
+                    activeWarnings++;
+                }
+                //Issued On
+                newTd.innerHTML = new Date(warningData.IssuedOn).toDateString();
+                newRow.append(newTd);
+                //Issued By
+                newTd = document.createElement('td');
+                var issuedByName = resolveUUID(warningData.IssuedBy);
+                newTd.innerHTML = issuedByName[(issuedByName.length - 1)].name;
+                newRow.append(newTd);
+                //Reason
+                newTd = document.createElement('td');
+                newTd.innerHTML = warningData.Reason;
+                newRow.append(newTd);
+                //View
+                newTd = document.createElement('td');
+                var newAElement = document.createElement('a');
+                newAElement.href = "../Warnings/view.html?uuid=" + uuid + "&id=" + key;
+                newAElement.class = "button";
+                newAElement.innerHTML = "View Details";
+                newTd.append(newAElement);
+                newRow.append(newTd);
+                //Append to table
+                warningTable.append(newRow);
+                //Update active warning
+                document.getElementById('activeWarnings').innerHTML = activeWarnings;
+            }
+
+            function addBan(banData, key) {
+                var newRow = document.createElement('tr');
+                var newTd = document.createElement('td');
+                //Check if still banned
+                if (banData.ExpiresOn === "") {
+                    banned = true;
+                } else {
+                    if (moment().isBefore(moment(banData.ExpiresOn))) {
+                        banned = true;
+                    }
+                }
+
+                //Issued On
+                newTd.innerHTML = new Date(banData.IssuedOn).toDateString();
+                newRow.append(newTd);
+                //Expires On
+                newTd = document.createElement('td');
+                newTd.innerHTML = new Date(banData.ExpiresOn).toDateString();
+                newRow.append(newTd);
+                //Expires On
+                newTd = document.createElement('td');
+                //Issued By
+                newTd = document.createElement('td');
+                var issuedByName = resolveUUID(banData.IssuedBy);
+                newTd.innerHTML = issuedByName[(issuedByName.length - 1)].name;
+                newRow.append(newTd);
+                //Reason
+                newTd = document.createElement('td');
+                newTd.innerHTML = banData.Reason;
+                newRow.append(newTd);
+                //View
+                newTd = document.createElement('td');
+                var newAElement = document.createElement('a');
+                newAElement.href = "../Bans/view.html?uuid=" + uuid + "&id=" + key;
+                newAElement.class = "button";
+                newAElement.innerHTML = "View Details";
+                newTd.append(newAElement);
+                newRow.append(newTd);
+                //Append to table
+                banTable.append(newRow);
+                //Update banned
+                document.getElementById('banned').innerHTML = banned;
+            }
+
+            function convertUUID(uuid) {
+                var convertedUUID = "";
+                convertedUUID += uuid.substring(0, 8) + "-";
+                convertedUUID += uuid.substring(8, 12) + "-";
+                convertedUUID += uuid.substring(12, 16) + "-";
+                convertedUUID += uuid.substring(16, 20) + "-";
+                convertedUUID += uuid.substring(20);
+
+                return convertedUUID;
+            }
+
+            //http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+            function getParameterByName(name, url) {
+                if (!url) {
+                    url = window.location.href;
+                }
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                        results = regex.exec(url);
+                if (!results)
+                    return null;
+                if (!results[2])
+                    return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+        </script>
     </body>
 </html>

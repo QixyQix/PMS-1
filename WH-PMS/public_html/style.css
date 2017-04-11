@@ -161,6 +161,10 @@ a.button {
     clear:right;
 }
 
+.width100{
+    width:100%;
+}
+
 .width50{
     width:48%;
 }
