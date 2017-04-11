@@ -11,6 +11,7 @@ and open the template in the editor.
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="stylesheet" href="../style.css" type="text/css"/>
         <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+        <script src="https://momentjs.com/downloads/moment.js"></script>
     </head>
     <body>
         <!--Start Menu-->
@@ -31,7 +32,7 @@ and open the template in the editor.
             <div id="contenttop">
             </div>
             <div id="contentMain">
-                <h1>New Warning Record</h1>
+                <h1>New Ban Record</h1>
                 <hr/>
 
                 <div class='heading'>1. Get user's UUID</div>
@@ -70,8 +71,31 @@ and open the template in the editor.
                         <input type='date' id='txtIssuedOn'/>
                     </div>
                     <div class='formBlock'>
+                        <label for="banTypeBox">Ban Type:</label>
+                        <div id="banTypeBox" class="leftText">
+                            <input type="radio" id="rdPerm" name="Permanent" value="true" checked="checked" onclick="banTypeRadio()">Permanent Ban<br/>
+                            <input type="radio" id="rdTemp" name="Permanent" value="false" onclick="banTypeRadio()">Temporary Ban<br/>
+                        </div>
+                    </div>
+                    <div class='formBlock' id='duration' hidden>
+                        <label>Ban Duration:</label><br/>
+                        <label for='txtHours'>Hours: </label>
+                        <input type='number' id='txtHours' min="0" value='0'/><br/>
+                        <label for='txtDays'>Days: </label>
+                        <input type='number' id='txtDays' min="0" value='0'/><br/>
+                        <label for='txtWeeks'>Weeks: </label>
+                        <input type='number' id='txtWeeks' min="0" value='0'/><br/>
+                        <label for='txtMonths'>Months: </label>
+                        <input type='number' id='txtMonths' min="0" value='0'/><br/>
+                    </div>
+                    <div class='formBlock'>
                         <label for='txtReason'>Reason:</label>
                         <textarea id="txtReason" rows="4" placeholder="e.g. Griefing a player's house in sandbox"></textarea>
+                    </div>
+                    <div class="formBlock">
+                        <label for='selWarningRefs'>Warning References (Ctrl+Click to select multiple):</label>
+                        <select id='selWarningRefs' name="warningRefs" multiple>
+                        </select>
                     </div>
                     <div class='formBlock'>
                         <button type="button" id="saveButton">Save</button>
@@ -87,8 +111,11 @@ and open the template in the editor.
             var btnGetUUID = document.getElementById('btnQueryUUID');
             btnGetUUID.addEventListener('click', getUUID);
             var btnSaveWarning = document.getElementById('saveButton');
-            btnSaveWarning.addEventListener('click', addWarning);
+            btnSaveWarning.addEventListener('click', addBan);
             var txtUUID = document.getElementById('txtUUID');
+            txtUUID.addEventListener('change', loadWarnings);
+
+            moment().format();
 
             loadForm();
 
@@ -103,6 +130,37 @@ and open the template in the editor.
                     }
                 });
             }
+
+            function banTypeRadio() {
+                if (document.getElementById('rdTemp').checked) {
+                    document.getElementById('duration').hidden = false;
+                } else {
+                    document.getElementById('duration').hidden = true;
+                }
+            }
+
+            function loadWarnings() {
+                var uuid = txtUUID.value;
+                var warningsBox = document.getElementById('selWarningRefs');
+                warningsBox.innerHTML = "";
+
+                if (validateUUID(uuid)) {
+                    var playerRef = firebase.database().ref("Players/" + uuid + "/Warnings");
+                    playerRef.once('value').then(function (snapshot) {
+                        if (snapshot.val() !== "") {
+                            snapshot.forEach(function (childSnapshot) {
+                                var childData = childSnapshot.val();
+                                var newWarningOption = document.createElement('option');
+                                newWarningOption.value = childSnapshot.key;
+                                newWarningOption.innerHTML = (new Date(childData.IssuedOn)).toDateString() + " - " + childData.Reason;
+
+                                warningsBox.append(newWarningOption);
+                            });
+                        }
+                    });
+                }
+            }
+
 
             function getUUID() {
                 var username = document.getElementById('txtUsername').value;
@@ -149,7 +207,7 @@ and open the template in the editor.
             function addWarning() {
                 var errorMsg = document.getElementById('errorMsg');
                 errorMsg.innerHTML = "";
-                
+
                 var offenderUUID = document.getElementById('txtUUID').value;
                 var issuerUUID = document.getElementById('txtIssuerUUID').value;
                 var issuedOn = Date.parse(document.getElementById('txtIssuedOn').value);
@@ -157,28 +215,71 @@ and open the template in the editor.
 
                 if (validateInput(reason) && validateUUID(offenderUUID) && validateUUID(issuerUUID) && !isNaN(issuedOn.valueOf())) {
                     var playersRef = firebase.database().ref("Players");
-                    
-                    console.log(issuedOn);
-                    console.log(new Date(issuedOn));
-                    
-                    firebase.auth().onAuthStateChanged(function(user){
-                       if(user){
-                           var playerRef = firebase.database().ref("Players/"+offenderUUID);
-                           var newWarningRef = playerRef.child("Warnings").push();
-                           newWarningRef.set({
-                               CreatedBy: user.uid,
-                               CreatedOn: Date.now(),
-                               EditedBy: user.uid,
-                               EditedOn: Date.now(),
-                               IssuedBy: issuerUUID,
-                               IssuedOn: new Date(issuedOn).getTime(),
-                               Reason: reason
-                           });
-                           errorMsg.innerHTML = "Recorded added successfully!";
-                       } 
+
+                    playersRef.once('value').then(function (snapshot) {
+                        if (snapshot.hasChild(offenderUUID)) {
+                            var playerRef = firebase.database().ref("Players/" + offenderUUID);
+                            var newWarningRef = playerRef.child("Warnings").push();
+                            newWarningRef.set({
+                                IssuedBy: issuerUUID,
+                                IssuedOn: new Date(issuedOn).getTime(),
+                                Reason: reason
+                            });
+                            errorMsg.innerHTML = "Recorded added successfully!";
+                        } else {
+                            errorMsg.innerHTML = "Player does not exist in database. Create player record first.";
+                        }
                     });
                 } else {
-                    errorMsg.innerHTML="Ensure UUIDs are in the correct format (XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)<br/>Ensure there are no script tags in the reason box.";
+                    errorMsg.innerHTML = "Ensure UUIDs are in the correct format (XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX)<br/>Ensure there are no script tags in the reason box.";
+                }
+
+            }
+
+            function addBan() {
+                var errorMsg = document.getElementById('errorMsg');
+                errorMsg.innerHTML = "";
+
+                var offenderUUID = document.getElementById('txtUUID').value;
+                var issuerUUID = document.getElementById('txtIssuerUUID').value;
+                var issuedOn = Date.parse(document.getElementById('txtIssuedOn').value);
+                var reason = document.getElementById('txtReason').value;
+                var warningRefs = document.getElementById('selWarningRefs');
+                var expiresOn = "";
+
+                var selectedRefs = [];
+                for (var i = 0; i < warningRefs.length; i++) {
+                    if (warningRefs.options[i].selected)
+                        selectedRefs.push(warningRefs.options[i].value);
+                }
+
+                var hours = document.getElementById('txtHours').value;
+                var days = document.getElementById('txtDays').value;
+                var weeks = document.getElementById('txtWeeks').value;
+                var months = document.getElementById('txtMonths').value;
+
+                if (validateInput(reason) && validateUUID(offenderUUID) && validateUUID(issuerUUID) && !isNaN(issuedOn.valueOf())) {
+                    if (document.getElementById('rdTemp').checked) {
+                        expiresOn = moment(issuedOn).add(hours, 'h').add(days, 'd').add(weeks, 'w').add(months, 'M');
+                    }
+
+                    firebase.auth().onAuthStateChanged(function (user) {
+                        if (user) {
+                            var playerRef = firebase.database().ref('Players/' + offenderUUID);
+                            var newBanRef = playerRef.child("Bans").push();
+                            newBanRef.set({
+                                IssuedBy: issuerUUID,
+                                IssuedOn: new Date(issuedOn).getTime(),
+                                ExpiresOn: expiresOn.valueOf(),
+                                Reason: reason,
+                                WarningRefs: selectedRefs,
+                                CreatedBy: user.uid,
+                                CreatedOn: Date.now(),
+                                EditedBy: user.uid,
+                                EditedOn: Date.now()
+                            });
+                        }
+                    });
                 }
 
             }

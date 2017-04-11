@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="../img/logo.png" width="90%"/>
+            <p>Player record Management System</p>
+
+            <div id="menulist">
+                <p class="strong">Home</p>
+                <hr/>
+                <p>
+                    <span class="strong">Players</span><br/>
+                    <span class="strong">View All Players</span><br/>
+                    <a href="view.html">View A Player</a><br/>
+                    <a href="create.html">New Player Record</a>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Warnings</span><br/>
+                    <a href="../warnings/create.html">New Warning Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Bans</span><br/>
+                    <a href="../bans/create.html">New Ban Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Account</span><br/>
+                    <a href="../account.html">Account Settings</a><br/>
+                    <a id="signOut">Logout</a>
+                </p>
+            </div>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div id="contentMain">
+                <h1>All Players</h1>
+                <hr/>
+                <div>
+                    <h4>View player profile via username</h4>
+                    <form>
+                        <label for="txtUsername">Username:</label>
+                        <p class="red" id="errorMsg"></p>
+                        <input type="text" id="txtUsername" placeholder="e.g. Minerboy100"/>
+                        <button type="button" id="btnView">View Profile</button>
+                    </form>
+                </div>
+                <table id="playersTable" width="100%">
+                    <tr>
+                        <th>Face</th>
+                        <th>Name</th>
+                        <th>UUID</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                </table>
+                <p class="centerText">Copyright &COPY; 2017, WolvHaven Dev</p>
+            </div>
+        </div>
+        <!--End Content-->
+        <script src="../javascript/firebaseSetup.js"></script>
+        <script src="../javascript/authentication.js"></script>
+        <script>
+            document.getElementById('btnView').addEventListener('click', getProfile);
+
+            var query = firebase.database().ref("Players").orderByKey();
+            query.once("value")
+                    .then(function (snapshot) {
+                        snapshot.forEach(function (childSnapshot) {
+                            addPlayer(childSnapshot.key);
+                        });
+                    });
+
+            function addPlayer(uuid) {
+                var uuidForAPI = uuid.substring(0, 8) + uuid.substring(9, 13) + uuid.substring(14, 18) + uuid.substring(19, 23) + uuid.substring(24);
+                var tableElement = document.getElementById('playersTable');
+                var newRow = document.createElement('tr');
+                var newTd = document.createElement('td');
+                //Player face
+                var newImg = document.createElement('img');
+                newImg.src = "https://crafatar.com/avatars/" + uuid;
+                newImg.width = 70;
+                newTd.append(newImg);
+                newRow.append(newTd);
+                //Player Name
+                newTd = document.createElement('td');
+
+                try {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open("GET", "https://api.mojang.com/user/profiles/" + uuidForAPI + "/names", false);
+                    xhttp.send();
+                    var response = JSON.parse(xhttp.responseText);
+                    newTd.innerHTML = response[(response.length - 1)].name;
+                } catch (err) {
+                    console.log("Error: UUID " + uuid + " does not exist!");
+                    console.log("Error: Unable to connect to mojang API");
+                    newTd.innerHTML = "";
+                }
+                newRow.append(newTd);
+                //UUID
+                newTd = document.createElement('td');
+                newTd.innerHTML = uuid;
+                newRow.append(newTd);
+                //Button Link
+                newTd = document.createElement('td');
+                var newLink = document.createElement('a');
+                newLink.class = "button";
+                newLink.href = "view.html?uuid=" + uuid;
+                newLink.innerHTML = "View Profile";
+                newTd.append(newLink);
+                newRow.append(newTd);
+
+                tableElement.append(newRow);
+                //newTd.append("<a href=\"view.html?uuid="+uuid+"\" class=\"button\">")
+            }
+
+            function getProfile() {
+                var username = document.getElementById('txtUsername').value;
+
+                var xhttp = new XMLHttpRequest();
+                xhttp.open("GET", "https://api.mojang.com/users/profiles/minecraft/" + username, false);
+                xhttp.send();
+
+                try {
+                    var response = JSON.parse(xhttp.responseText);
+
+                    if (response.id !== null) {
+                        var uuid = response.id;
+                        var convertedUUID = convertUUID(uuid);
+                        window.location = "view.html?uuid=" + convertedUUID;
+                    }
+                } catch (err) {
+                    document.getElementById('errorMsg').innerHTML = "Player does not exist!";
+                }
+            }
+
+
+            function convertUUID(uuid) {
+                var convertedUUID = "";
+                convertedUUID += uuid.substring(0, 8) + "-";
+                convertedUUID += uuid.substring(8, 12) + "-";
+                convertedUUID += uuid.substring(12, 16) + "-";
+                convertedUUID += uuid.substring(16, 20) + "-";
+                convertedUUID += uuid.substring(20);
+
+                return convertedUUID;
+            }
+        </script>
+    </body>
+</html>
