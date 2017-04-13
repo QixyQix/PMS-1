@@ -75,7 +75,7 @@ and open the template in the editor.
                         <th>Issued On</th>
                         <th>Issued By</th>
                         <th>Reason</th>
-                        <th>&nbsp</th>
+                        <!--<th>&nbsp</th>-->
                     </table>
                 </div>
                 <!--Bans-->                
@@ -87,7 +87,7 @@ and open the template in the editor.
                         <th>Expires On</th>
                         <th>Issued By</th>
                         <th>Reason</th>
-                        <th>&nbsp</th>
+                        <!--<th>&nbsp</th>-->
                     </table>
                 </div>
                 <p class="centerText clearLeft">Copyright &COPY; 2017, WolvHaven Dev</p>
@@ -164,13 +164,13 @@ and open the template in the editor.
                 newTd.innerHTML = warningData.Reason;
                 newRow.append(newTd);
                 //View
-                newTd = document.createElement('td');
-                var newAElement = document.createElement('a');
-                newAElement.href = "../Warnings/view.html?uuid=" + uuid + "&id=" + key;
-                newAElement.class = "button";
-                newAElement.innerHTML = "View Details";
-                newTd.append(newAElement);
-                newRow.append(newTd);
+//                newTd = document.createElement('td');
+//                var newAElement = document.createElement('a');
+//                newAElement.href = "../Warnings/view.html?uuid=" + uuid + "&id=" + key;
+//                newAElement.class = "button";
+//                newAElement.innerHTML = "View Details";
+//                newTd.append(newAElement);
+//                newRow.append(newTd);
                 //Append to table
                 warningTable.append(newRow);
                 //Update active warning
@@ -208,13 +208,13 @@ and open the template in the editor.
                 newTd.innerHTML = banData.Reason;
                 newRow.append(newTd);
                 //View
-                newTd = document.createElement('td');
-                var newAElement = document.createElement('a');
-                newAElement.href = "../Bans/view.html?uuid=" + uuid + "&id=" + key;
-                newAElement.class = "button";
-                newAElement.innerHTML = "View Details";
-                newTd.append(newAElement);
-                newRow.append(newTd);
+//                newTd = document.createElement('td');
+//                var newAElement = document.createElement('a');
+//                newAElement.href = "../Bans/view.html?uuid=" + uuid + "&id=" + key;
+//                newAElement.class = "button";
+//                newAElement.innerHTML = "View Details";
+//                newTd.append(newAElement);
+//                newRow.append(newTd);
                 //Append to table
                 banTable.append(newRow);
                 //Update banned

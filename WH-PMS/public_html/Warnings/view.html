@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../style.css" type="text/css"/>
+        <script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+        <script src="https://momentjs.com/downloads/moment.js"></script>
+
+    </head>
+    <body>
+        <!--Start Menu-->
+        <div id="menu">
+            <img src="../img/logo.png" width="90%"/>
+            <p>Player record Management System</p>
+
+            <div id="menulist">
+                <p class="strong">Home</p>
+                <hr/>
+                <p>
+                    <span class="strong">Players</span><br/>
+                    <span class="strong">View All Players</span><br/>
+                    <a href="view.html">View A Player</a><br/>
+                    <a href="create.html">New Player Record</a>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Warnings</span><br/>
+                    <a href="../warnings/create.html">New Warning Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Bans</span><br/>
+                    <a href="../bans/create.html">New Ban Record</a><br/>
+                </p>
+                <hr/>
+                <p>
+                    <span class="strong">Account</span><br/>
+                    <a href="../account.html">Account Settings</a><br/>
+                    <a id="signOut">Logout</a>
+                </p>
+            </div>
+        </div>
+        <!--End Menu-->
+
+        <!--Start Content-->
+        <div id="content">
+            <div id="contenttop">
+            </div>
+            <div id="contentMain">
+                <h1>View Warning Record Details</h1>
+                <hr/>
+                <!--Record Summary-->
+                <div>
+                    <span class="strong">Record Id:</span><span id="recordId"></span>
+                    <span class="strong">Created On:</span><span id="createdOn"></span>
+                    <span class="strong">Active:</span><span id="active"></span>
+                </div>
+                <table>
+                    <tr>
+                        <th>Record Holder: (UUID)</th>
+                        <td id="tdRecordHolder"></td>
+                    </tr>
+                    <tr>
+                        <th>Record Holder: (Name)</th>
+                        <td id="tdRecordHolderName"></td>
+                    </tr>
+                    <tr>
+                        <th>Issued By: (UUID)</th>
+                        <td id="tdIssuedBy"></td>
+                    </tr>
+                    <tr>
+                        <th>Issued By: (Name)</th>
+                        <td id="tdIssuedByName"></td>
+                    </tr>
+                    <tr>
+                        <th>Issued On:</th>
+                        <td id="tdIssuedOn"></td>
+                    </tr>
+                    <tr>
+                        <th>Reason:</th>
+                        <td id="tdReason"></td>
+                    </tr>
+                    <tr></tr>
+                </table>
+                <p class="centerText clearLeft">Copyright &COPY; 2017, WolvHaven Dev</p>
+            </div>
+        </div>
+        <!--End Content-->
+        <script src="../javascript/firebaseSetup.js"></script>
+        <script src="../javascript/authentication.js"></script>
+        <script>
+            var active = false;
+            loadWarning();
+
+            function loadWarning() {
+                var uuid = getParameterByName("uuid");
+                var id = getParameterByName("id");
+                var warningDetails;
+                var nameArray;
+
+                var playerRef = firebase.database().ref('Players/' + uuid + '/Warnings');
+                playerRef.once('value').then(function (snapshot) {
+                    warningDetails = snapshot.child(id).val();
+                });
+
+                if (warningDetails !== "") {
+                    document.getElementById('recordId').innerHTML = id;
+                    document.getElementById('createdOn').innerHTML = new Date(warningDetails.CreatedOn).toDateString();
+                    if (moment().isBefore(moment(warningDetails.IssuedOn).add(2, 'M'))) {
+                        active = true;
+                    }
+                    document.getElementById('active').innerHTML = active;
+
+                    document.getElementById('tdRecordHolder').innerHTML = uuid;
+                    nameArray = resolveUUID(uuid);
+                    document.getElementById('tdRecordHolderName').innerHTML = nameArray[(nameArray.length - 1)].name;
+                    document.getElementById('tdIssuedBy').innerHTML = warningDetails.IssuedBy;
+                    nameArray = resolveUUID(warningDetails.IssuedBy);
+                    document.getElementById('tdIssuedByName').innerHTML = nameArray[(nameArray.length - 1)].name;
+                    document.getElementById('tdIssuedOn').innerHTML = new Date(warningDetails.IssuedOn).toDateString();
+                    document.getElementById('tdReason').innerHTML = warningDetails.Reason;
+                }
+
+            }
+
+            function resolveUUID(uuid) {
+                var uuidForAPI = uuid.substring(0, 8) + uuid.substring(9, 13) + uuid.substring(14, 18) + uuid.substring(19, 23) + uuid.substring(24);
+                try {
+                    var xhttp = new XMLHttpRequest();
+                    xhttp.open("GET", "https://api.mojang.com/user/profiles/" + uuidForAPI + "/names", false);
+                    xhttp.send();
+                    var response = JSON.parse(xhttp.responseText);
+                    return response;
+                } catch (err) {
+                    console.log("Error: UUID " + uuid + " does not exist!");
+                    console.log("Error: Unable to connect to mojang API");
+                }
+            }
+
+            function convertUUID(uuid) {
+                var convertedUUID = "";
+                convertedUUID += uuid.substring(0, 8) + "-";
+                convertedUUID += uuid.substring(8, 12) + "-";
+                convertedUUID += uuid.substring(12, 16) + "-";
+                convertedUUID += uuid.substring(16, 20) + "-";
+                convertedUUID += uuid.substring(20);
+
+                return convertedUUID;
+            }
+
+            //http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+            function getParameterByName(name, url) {
+                if (!url) {
+                    url = window.location.href;
+                }
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                        results = regex.exec(url);
+                if (!results)
+                    return null;
+                if (!results[2])
+                    return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+        </script>
+    </body>
+</html>
