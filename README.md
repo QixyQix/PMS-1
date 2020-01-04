@@ -1,11 +1,14 @@
-# WolvHaven PMS
-> The WolvHaven Player Management System is made for the purpose of logging and recording all user bans and warnings
+# Player record management system (PMS)
+> The Player record Management System is made for the purpose of logging and recording all player bans and warnings for a minecraft server called WolvHaven.
+
+This is an older version of PMS that is no longer in use.
 
 ## Technologies Used
 
 * HTML/CSS
 * Javascript
 * Firebase Realtime Database
+* Firebase Authentication
 
 ## Setup
 
